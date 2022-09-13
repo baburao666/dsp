@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+    <div>
+      '''
+      <pre>
+
+        <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,,1 Obtain digital signal
+        clc
+clear all
+t=0:0.0001:2;
+f=4;
+x_t=sin(2*pi*f*t);
+subplot(2,1,1);
+plot(t,x_t);
+xlabel('t');
+ylabel('8\pi t');
+title('Continuous Sine Signal');
+grid on;
+
+Ts=1/16;
+ts=0:Ts:2;
+n=ts/Ts
+x_n=sin(2*pi*f*ts);
+subplot(2,1,2);
+stem(n,x_n);
+xlabel('n');
+ylabel('x(n)');
+title('Sampled Sine Signal');
+grid on;
+
+================================================================================================================================
+
+________________________________________________________________________,,,2 Cosine signal/Fourier
+clc
+clear all
+t=0:0.001:2;
+f=2;
+xct=cos(2*pi*f*t);
+subplot(2,2,1);
+plot(t,xct);
+xlabel('Time(sec)')
+ylabel('Cos(4\pit)')
+title('Cosine Signal')
+grid on;
+
+
+w=linspace(-8*pi,8*pi,length(t));
+for i=1:length(w)
+    xcw(i)=trapz(t,xct.*exp(-j*w(i).*t));
+end
+subplot(2,2,2);
+plot(w,abs(xcw));
+xlabel('\Omega')
+ylabel('F(cos(4\pit))')
+title('Fourier Transform of cosine Signal')
+grid on;
+
+
+Ts=1/16;
+ts=0:Ts:2;
+n=ts./Ts;
+xn=cos(2*pi*f*ts);
+subplot(2,2,3);
+stem(n,xn,'-r','filled')
+xlabel('n(integer)')
+ylabel('Cos(4\pi n Ts)')
+title('Sampled Cosine Signal')
+grid on;
+
+for i=1:length(w)
+    xnw(i)=sum(xn.*exp(-j*w(i).*n));
+end
+subplot(2,2,4);
+plot(w,abs(xnw),'-r');
+xlabel('\Omega(radian)')
+ylabel('F(cos(4\pi n Ts))')
+title('Fourier Transform of digital cosine Signal')
+grid on;
+
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+___________________________________________________________3   Reconstruction
+
+clc
+clear all
+t=0:0.001:2
+tt=-2:0.001:2;
+F=4
+x_t=sin(2*pi*F*t)
+x_tt=sinc(2*pi*F*tt)
+subplot(2,1,1)
+plot(tt,x_tt)
+grid on;
+
+hold on
+Ts=1/16
+ts=0:Ts:2;
+x_n_vec=sin(2*pi*F*ts)
+
+n_vec=ts/Ts;
+
+x_r_t=zeros(1,length(t));
+
+for n_indx=1:length(n_vec)
+    xn=x_n_vec(1,n_indx);
+    n=n_vec(1,n_indx);
+    temp=xn*sinc((t-n*Ts)/Ts);
+    x_r_t=x_r_t+temp;
+end
+
+subplot(2,1,2)
+plot(t,x_r_t,'r+:');
+grid on;
+hold on
+subplot(2,1,2)
+plot(t,x_t,'k-');
+xlabel('t');
+legend('Reconstructed signal','Original signal')
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+___________________________________________________________4  Power spectrum
+
+Code-1:
+clc;
+clear all
+fs = 1200;
+t = (0: 1/fs :0.3);
+f = 500;
+signal = cos(2*pi*f*t)
+noise = 0.1*randn(size(t))
+figure
+plot(t,noise)
+
+signalWithNoise = signal + noise
+figure
+plot(t,signalWithNoise)
+
+
+
+Code-2:
+clc
+clear all
+fs=1200;
+t=(0:1/fs:0.300)';
+f1=500;
+f2=800;
+f3=300;
+signal=cos(2*pi*f1*t)+cos(2*pi*f2*t)+cos(2*pi*3*t);
+noise=.1*randn(size(t))
+stats=[mean(noise) std(noise) var(noise)]
+SignalWithNoise=signal+noise;
+SignalTimeTable=timetable(seconds(t),SignalWithNoise)
+stackedplot(SignalTimeTable);
+pspectrum(SignalTimeTable)
+
+OriginalSignal=timetable(seconds(t),signal)
+figure
+pspectrum(OriginalSignal)
+
+
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+___________________________________________________________5  Pole zero plot
+
+clc
+clear all
+fs=1000;
+ts=1/fs;
+num1=[5 1];
+den1=[1 15 100];
+h1=tf(num1, den1);
+num2=[1.5 2 3];
+den2=[2 -1.5 0.5 0.6];
+h2=tf(num2, den2, ts, 'variable','z^-1');
+num3=[1 0 0];
+den3=[2 -3 1];
+h3=tf(num3, den3, ts,'variable','z')
+figure(1)
+pzmap(h1)
+
+axis equal
+sgrid
+figure(2)
+zplane(num2, den2)
+zgrid
+zplane(num3, den3)
+zgrid
+
+figure(3)
+tf2zp(num2,den2);
+[z,p,k]=tf2zp(num2,den2)
+z = roots(num2);
+p=roots(den2);
+z=zero(h2);
+p=pole(h2);
+pzplot(h2)
+axis equal
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+___________________________________________________________6   Magnitude/phase plot
+
+clc
+clear all
+a=[1 0];
+b=[1 0.9];
+subplot(2,2,1);
+zplane(a,b);
+grid on;
+title('Graph Plot');
+
+w=-4*pi:0.01:4*pi;
+[H,w]=freqz(a,b,w);
+magnitudeH=abs(H);
+phaseH=angle(H);
+subplot(2,2,2);
+plot(w/pi,magnitudeH);
+grid on;
+xlabel('Frequency in pi units')
+ylabel('Magnitude in pi units')
+title('Magnitude Plot');
+
+
+subplot(2,2,3.5);
+plot(w/pi,phaseH);
+grid on;
+xlabel('Frequency in pi units');
+ylabel('Phase in pi units');
+title('Phase Plot');
+
+      </pre>
+'''
+    </div>
+  </body>
+</html>
